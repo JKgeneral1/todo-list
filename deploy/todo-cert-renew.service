@@ -1,0 +1,8 @@
+[Unit]
+Description=Renew TLS certificate for todo.pervakov.com
+Requires=docker.service
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker exec nginx-proxy-manager certbot renew --cert-name todo-pervakov --quiet --deploy-hook "nginx -t && nginx -s reload"

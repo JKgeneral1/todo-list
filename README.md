@@ -37,14 +37,20 @@ Compose использует существующую внешнюю сеть `n
 
 ## Поддомен и HTTPS
 
-Целевой адрес: `https://todo.pervakov.com` (публикация требует отдельной настройки DNS и сертификата).
+Рабочий сайт: https://todo.pervakov.com
 
-1. Установите инструменты: `npm ci`.
-2. Проверьте Cloudflare: `npm run cf:whoami`. Для Wrangler можно использовать `npx wrangler login`; для DNS API нужен API token с Zone Read и DNS Edit для зоны pervakov.com. Не сохраняйте секреты в репозитории.
-3. В Cloudflare создайте запись `todo` с проверенным адресом origin-сервера. Не копируйте IP из публичного DNS проксируемого сайта: это может быть адрес Cloudflare.
-4. В Nginx Proxy Manager добавьте Proxy Host `todo.pervakov.com`, scheme `http`, host `todo-list-web`, port `8080`.
-5. Выпустите сертификат для этого поддомена, включите Force SSL и используйте Cloudflare SSL/TLS Full (strict).
-6. Проверьте DNS, HTTPS, функциональность и отсутствие изменений у остальных сайтов.
+DNS-запись A в Cloudflare указывает на origin-сервер; режим DNS only. HTTPS завершается в существующем Nginx Proxy Manager. Конфигурация `deploy/proxy-todo.conf` подключена через `/data/nginx/custom/http.conf` строкой `include /data/nginx/custom/todo.conf;`. Маршрут управляется этим конфигурационным файлом, а не через UI Proxy Hosts.
+
+Сертификат Let's Encrypt `todo-pervakov` выпущен через webroot `/data/letsencrypt-acme-challenge`. Он хранится в постоянном томе прокси. Файлы `deploy/todo-cert-renew.service` и `deploy/todo-cert-renew.timer` установлены в `/etc/systemd/system/`: ежедневная проверка продлевает сертификат при необходимости и перезагружает nginx.
+
+Проверка развёртывания:
+
+```sh
+curl -I https://todo.pervakov.com/
+systemctl list-timers todo-cert-renew.timer
+```
+
+Для работы с Cloudflare DNS используется API token с Zone Read и DNS Edit, ограниченный зоной pervakov.com. Секрет хранится локально в `.env` с правами 600, исключён из Git и Docker-образа. Этот токен проверен через Cloudflare API и использован для создания записи. `wrangler whoami` требует дополнительных прав для чтения аккаунта; его ошибка при таком ограниченном токене не означает недействительность DNS-токена.
 
 ## Проверки
 
