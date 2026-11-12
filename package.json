@@ -1,0 +1,15 @@
+{
+  "name": "po-poryadku-todo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A small accessible Russian to-do list with browser persistence",
+  "scripts": {
+    "check": "node --check public/app.js",
+    "test": "playwright test",
+    "cf:whoami": "wrangler whoami"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "wrangler": "4.161.0"
+  }
+}
